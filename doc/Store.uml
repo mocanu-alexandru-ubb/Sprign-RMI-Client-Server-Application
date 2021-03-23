@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>JAVA</ID>
+  <OriginalElement>Store</OriginalElement>
+  <nodes>
+    <node x="586.7125000000001" y="80.0">Store.Domain.Validator.StoreException</node>
+    <node x="570.7125000000001" y="170.0">Store.Domain.Validator.ValidatorException</node>
+    <node x="148.99999999999994" y="250.0">Store.Domain.Validator.ClientValidator</node>
+    <node x="337.99999999999994" y="170.0">Store.Services.ClientService</node>
+    <node x="337.30740740740737" y="360.0">Store.Main</node>
+    <node x="63.49999999999994" y="170.0">Store.Domain.Validator.Validator</node>
+    <node x="437.74999999999994" y="80.0">Store.Domain.Client</node>
+    <node x="278.24999999999994" y="0.0">Store.Domain.BaseEntity</node>
+    <node x="266.66435185185173" y="80.0">Store.Repository.Repository</node>
+    <node x="0.0" y="250.0">Store.Repository.ClientRepo</node>
+    <node x="445.71250000000003" y="250.0">Store.UI.Console</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="Store.Services.ClientService" target="Store.Repository.Repository">
+      <point x="-57.0" y="-15.0" />
+      <point x="356.99999999999994" y="130.0" />
+      <point x="346.66435185185173" y="130.0" />
+      <point x="16.0" y="15.0" />
+    </edge>
+    <edge source="Store.Main" target="Store.Repository.Repository">
+      <point x="-8.888888888888857" y="-15.0" />
+      <point x="368.4185185185185" y="310.0" />
+      <point x="327.49999999999994" y="310.0" />
+      <point x="327.49999999999994" y="130.0" />
+      <point x="314.66435185185173" y="130.0" />
+      <point x="-16.0" y="15.0" />
+    </edge>
+    <edge source="Store.Repository.ClientRepo" target="Store.Domain.BaseEntity">
+      <point x="-48.0" y="-15.0" />
+      <point x="16.0" y="225.0" />
+      <point x="26.5" y="225.0" />
+      <point x="26.5" y="55.0" />
+      <point x="299.58333333333326" y="55.0" />
+      <point x="-42.666666666666686" y="15.0" />
+    </edge>
+    <edge source="Store.Main" target="Store.Services.ClientService">
+      <point x="0.0" y="-15.0" />
+      <point x="377.30740740740737" y="300.0" />
+      <point x="372.7754629629628" y="300.0" />
+      <point x="372.7754629629628" y="225.0" />
+      <point x="356.99999999999994" y="225.0" />
+      <point x="-57.0" y="15.0" />
+    </edge>
+    <edge source="Store.UI.Console" target="Store.Services.ClientService">
+      <point x="-41.599999999999966" y="-15.0" />
+      <point x="456.11250000000007" y="225.0" />
+      <point x="432.99999999999994" y="225.0" />
+      <point x="19.0" y="15.0" />
+    </edge>
+    <edge source="Store.Domain.Client" target="Store.Domain.BaseEntity">
+      <point x="0.0" y="-15.0" />
+      <point x="485.74999999999994" y="55.0" />
+      <point x="384.9166666666666" y="55.0" />
+      <point x="42.66666666666663" y="15.0" />
+    </edge>
+    <edge source="Store.Main" target="Store.Repository.ClientRepo">
+      <point x="-35.55555555555554" y="-15.0" />
+      <point x="341.7518518518518" y="340.0" />
+      <point x="64.0" y="340.0" />
+      <point x="0.0" y="15.0" />
+    </edge>
+    <edge source="Store.Domain.Validator.ValidatorException" target="Store.Domain.Validator.StoreException">
+      <point x="-48.0" y="-15.0" />
+      <point x="618.7125000000001" y="150.0" />
+      <point x="626.7125000000001" y="150.0" />
+      <point x="-40.0" y="15.0" />
+    </edge>
+    <edge source="Store.Main" target="Store.Domain.Client">
+      <point x="35.55555555555554" y="-15.0" />
+      <point x="412.8629629629629" y="340.0" />
+      <point x="560.2125000000001" y="340.0" />
+      <point x="560.2125000000001" y="140.0" />
+      <point x="525.75" y="140.0" />
+      <point x="40.0" y="15.0" />
+    </edge>
+    <edge source="Store.Services.ClientService" target="Store.Domain.Client">
+      <point x="19.0" y="-15.0" />
+      <point x="432.99999999999994" y="150.0" />
+      <point x="461.74999999999994" y="150.0" />
+      <point x="-24.0" y="15.0" />
+    </edge>
+    <edge source="Store.Main" target="Store.Domain.Validator.Validator">
+      <point x="-26.666666666666686" y="-15.0" />
+      <point x="350.6407407407407" y="330.0" />
+      <point x="138.49999999999994" y="330.0" />
+      <point x="15.0" y="15.0" />
+    </edge>
+    <edge source="Store.UI.Console" target="Store.Domain.Validator.ValidatorException">
+      <point x="41.60000000000002" y="-15.0" />
+      <point x="539.3125" y="225.0" />
+      <point x="666.7125000000001" y="225.0" />
+      <point x="0.0" y="15.0" />
+    </edge>
+    <edge source="Store.Repository.ClientRepo" target="Store.Repository.Repository">
+      <point x="-16.0" y="-15.0" />
+      <point x="48.0" y="225.0" />
+      <point x="37.5" y="225.0" />
+      <point x="37.5" y="130.0" />
+      <point x="282.66435185185173" y="130.0" />
+      <point x="-48.0" y="15.0" />
+    </edge>
+    <edge source="Store.Main" target="Store.Domain.Validator.ClientValidator">
+      <point x="-17.77777777777777" y="-15.0" />
+      <point x="359.5296296296296" y="320.0" />
+      <point x="232.99999999999994" y="320.0" />
+      <point x="0.0" y="15.0" />
+    </edge>
+    <edge source="Store.UI.Console" target="Store.Domain.Client">
+      <point x="20.799999999999955" y="-15.0" />
+      <point x="518.5125" y="225.0" />
+      <point x="528.9625000000001" y="225.0" />
+      <point x="528.9625000000001" y="150.0" />
+      <point x="509.74999999999994" y="150.0" />
+      <point x="24.0" y="15.0" />
+    </edge>
+    <edge source="Store.Domain.Validator.ClientValidator" target="Store.Domain.Client">
+      <point x="42.0" y="-15.0" />
+      <point x="274.99999999999994" y="140.0" />
+      <point x="445.74999999999994" y="140.0" />
+      <point x="-40.0" y="15.0" />
+    </edge>
+    <edge source="Store.Main" target="Store.UI.Console">
+      <point x="17.77777777777777" y="-15.0" />
+      <point x="395.08518518518514" y="320.0" />
+      <point x="471.71250000000003" y="320.0" />
+      <point x="-26.0" y="15.0" />
+    </edge>
+    <edge source="Store.Repository.Repository" target="Store.Domain.BaseEntity">
+      <point x="0.0" y="-15.0" />
+      <point x="330.66435185185173" y="55.0" />
+      <point x="342.24999999999994" y="55.0" />
+      <point x="0.0" y="15.0" />
+    </edge>
+    <edge source="Store.Repository.ClientRepo" target="Store.Domain.Validator.Validator">
+      <point x="16.0" y="-15.0" />
+      <point x="80.0" y="225.0" />
+      <point x="78.49999999999994" y="225.0" />
+      <point x="-45.0" y="15.0" />
+    </edge>
+    <edge source="Store.Domain.Validator.ClientValidator" target="Store.Domain.Validator.Validator">
+      <point x="-42.0" y="-15.0" />
+      <point x="190.99999999999994" y="225.0" />
+      <point x="168.49999999999994" y="225.0" />
+      <point x="45.0" y="15.0" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic Group" zoom="1.0" x="207.5" y="209.0" />
+  <SelectedNodes />
+  <Categories />
+  <SCOPE>All</SCOPE>
+  <VISIBILITY>private</VISIBILITY>
+</Diagram>
+

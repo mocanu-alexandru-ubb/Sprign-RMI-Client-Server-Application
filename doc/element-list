@@ -1,0 +1,7 @@
+Store
+Store.Domain
+Store.Domain.Validator
+Store.Repository
+Store.Repository.DBRepo
+Store.Services
+Store.UI
