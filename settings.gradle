@@ -1,5 +1,5 @@
 rootProject.name = 'CandyShop'
-include 'test'
 include 'common'
 include 'server'
+include 'client'
 
