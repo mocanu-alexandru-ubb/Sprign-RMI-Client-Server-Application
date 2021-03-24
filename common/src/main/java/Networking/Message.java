@@ -13,7 +13,7 @@ public class Message
 {
     /**
      * For the call
-     * header = "controllername:methodname" | ex: "ClientController:findAll"
+     * header = "servicename:methodname" | ex: "ClientService:findAll"
      * body = method parameters serialized as csv
      * <p>
      * For the response
