@@ -2,30 +2,84 @@ package Services;
 
 import Domain.Client;
 import Exceptions.ValidatorException;
+import Networking.Message;
+import Networking.TCPClient;
 
+import java.io.Serializable;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
 public class ClientServiceStub implements ClientService{
-    @Override
-    public Future<Void> addClient(Long id) throws ValidatorException {
-        return null;
+
+    private ExecutorService executorService;
+
+    public ClientServiceStub(ExecutorService executorService) {
+        this.executorService = executorService;
     }
+
+    @Override
+    public Future<Void> addClient(Long id, String name) throws ValidatorException {
+        Callable<Void> callable = () -> {
+            Message message = new Message("ClientService:addClient");
+            message.addString(id.toString());
+            message.addString(name);
+
+            Message res = TCPClient.sendAndReceive(message);
+            if(res.getHeader().equals("success")) {
+                return null;
+            }
+
+            throw new RuntimeException("invalid response!");
+        };
+        return executorService.submit(callable);
+    }
+
 
     @Override
     public Future<Optional<Client>> getOne(Long ID) {
-        return null;
+        Callable<Optional<Client>> callable = () -> {
+            Message message = new Message("ClientService:getOne");
+            message.addString(ID.toString());
+
+            Message res = TCPClient.sendAndReceive(message);
+
+            if(res.getHeader().equals("success")) {
+                return null;
+            }
+            throw new RuntimeException("invalid response!");
+        };
+        return executorService.submit(callable);
     }
 
     @Override
-    public boolean findClient(Long ID) {
-        return false;
+    public Future<Boolean> findClient(Long ID) {
+        Callable<Boolean> callable = () -> {
+            Message message = new Message("ClientService:findClient");
+            message.addString(ID.toString());
+
+            Message res = TCPClient.sendAndReceive(message);
+            if(res.getHeader().equals("success")) {
+                return null;
+            }
+            throw new RuntimeException("invalid response!");
+        };
+        return executorService.submit(callable);
     }
 
     @Override
     public Future<Set<Client>> getAllClients() {
-        return null;
+        Callable<Set<Client>> callable = () -> {
+            Message message = new Message("ClientService:getAllClients");
+            Message res = TCPClient.sendAndReceive(message);
+            if(res.getHeader().equals("success")) {
+                return null;
+            }
+            throw new RuntimeException("invalid response!");
+        };
+        return executorService.submit(callable);
     }
 
     /**
@@ -36,7 +90,17 @@ public class ClientServiceStub implements ClientService{
      */
     @Override
     public Future<Set<Client>> filterByName(String name) {
-        return null;
+        Callable<Set<Client>> callable = () -> {
+            Message message = new Message("ClientService:filterByName");
+            message.addString(name);
+
+            Message res = TCPClient.sendAndReceive(message);
+            if(res.getHeader().equals("success")) {
+                return null;
+            }
+            throw new RuntimeException("invalid response!");
+        };
+        return executorService.submit(callable);
     }
 
     /**
@@ -45,7 +109,18 @@ public class ClientServiceStub implements ClientService{
      * @param id id of entity to be removed
      */
     @Override
-    public void removeClient(Long id) {
+    public Future<Void> removeClient(Long id) {
+        Callable<Void> callable = () -> {
+            Message message = new Message("ClientService:removeClient");
+            message.addString(id.toString());
 
+            Message res = TCPClient.sendAndReceive(message);
+
+            if(res.getHeader().equals("success")) {
+                return null;
+            }
+            throw new RuntimeException("invalid response!");
+        };
+        return executorService.submit(callable);
     }
 }
