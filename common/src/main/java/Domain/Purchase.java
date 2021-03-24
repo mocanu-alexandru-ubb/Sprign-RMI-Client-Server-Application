@@ -13,7 +13,7 @@ public class Purchase extends BaseEntity<Long> {
     private Long clientID;
     private int quantity;
 
-    public Purchase(Long purchaseID, Long clientID, Long candyID, int quantity) {
+    public Purchase(Long purchaseID, Long clientID, Long candyID, Integer quantity) {
         super(purchaseID);
         this.purchaseID = purchaseID;
         this.candyID = candyID;

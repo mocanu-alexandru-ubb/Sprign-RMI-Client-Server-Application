@@ -1,5 +1,6 @@
 package Server;
 
+import Domain.Client;
 import Networking.*;
 import Service.ClientService;
 
@@ -21,6 +22,7 @@ public class ServiceHandler {
         typeParsers.put(Integer.class, new ParserInteger());
         typeParsers.put(String.class, new ParserString());
         typeParsers.put(Long.class, new ParserLong());
+        typeParsers.put(Client.class, new ParserClient());
     }
 
     public static Message handleMessage(
