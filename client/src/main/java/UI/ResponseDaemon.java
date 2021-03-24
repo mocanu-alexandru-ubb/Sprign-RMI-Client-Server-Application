@@ -1,13 +1,15 @@
+package UI;
+
 import UI.ResponseBuffer;
 
 import java.util.List;
 import java.util.TimerTask;
 
-public class responseDaemon extends TimerTask {
+public class ResponseDaemon extends TimerTask {
 
     private ResponseBuffer responseBuffer;
 
-    public responseDaemon(ResponseBuffer responseBuffer) {
+    public ResponseDaemon(ResponseBuffer responseBuffer) {
         this.responseBuffer = responseBuffer;
     }
 
