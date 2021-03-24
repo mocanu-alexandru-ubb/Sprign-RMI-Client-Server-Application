@@ -30,9 +30,9 @@ public class ClientService {
         repository.save(student);
     }
 
-    public Set<Client> getAllStudents() {
-        Iterable<Client> students = repository.findAll();
-        return StreamSupport.stream(students.spliterator(), false).collect(Collectors.toSet());
+    public Iterable<Client> getAll() {
+        Iterable<Client> clients = repository.findAll();
+        return StreamSupport.stream(clients.spliterator(), false).collect(Collectors.toSet());
     }
 
     /**
