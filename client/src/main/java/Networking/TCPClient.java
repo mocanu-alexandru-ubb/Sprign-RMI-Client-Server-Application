@@ -11,7 +11,7 @@ import java.net.Socket;
 
 public class TCPClient {
     public static Message sendAndReceive(Message request) {
-        try (Socket socket = new Socket(ServerInformation.HOST, ServerInformation.PORT);
+        try (Socket socket = new Socket(ServerInformation.HOST, ServerInformation.PORT); 
              InputStream inputStream = socket.getInputStream();
              OutputStream outputStream = socket.getOutputStream()
         ) {
