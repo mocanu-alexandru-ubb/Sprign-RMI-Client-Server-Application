@@ -6,6 +6,7 @@ import Exceptions.ValidatorException;
 import Repository.Repository;
 
 import java.util.Set;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 /*
@@ -13,6 +14,7 @@ import java.util.stream.StreamSupport;
 * */
 
 public class ClientService {
+    private static final ReentrantReadWriteLock lock = new ReentrantReadWriteLock(true);
     private final Repository<Long, Client> repository;
 
     public ClientService(Repository<Long, Client> repository) {
@@ -20,18 +22,25 @@ public class ClientService {
     }
 
     public boolean findClient(Long ID) {
-        return repository.findOne(ID).isPresent();
+        lock.readLock().lock();
+        var entity = repository.findOne(ID);
+        lock.readLock().unlock();
+        return entity.isPresent();
     }
 
     public void addClient(Long id, String name) throws ValidatorException {
         Client student = new Client(id, name);
+        lock.writeLock().lock();
         repository.findOne(student.getClientID())
-                .ifPresent((element) -> {throw new RepoException("id already taken!");});
+                .ifPresent((element) -> {lock.writeLock().unlock(); throw new RepoException("id already taken!");});
         repository.save(student);
+        lock.writeLock().unlock();
     }
 
-    public Iterable<Client> getAll() {
+    public Iterable<Client> getAllClients() {
+        lock.readLock().lock();
         Iterable<Client> clients = repository.findAll();
+        lock.readLock().unlock();
         return StreamSupport.stream(clients.spliterator(), false).collect(Collectors.toSet());
     }
 
@@ -44,7 +53,9 @@ public class ClientService {
      * @return a {@code Set} - a set containing all entries that have the given string in their name.
      */
     public Set<Client> filterByName(String name) {
+        lock.readLock().lock();
         Iterable<Client> clients = repository.findAll();
+        lock.readLock().unlock();
         return StreamSupport
                 .stream(clients.spliterator(), false)
                 .filter(c -> c.getName().toLowerCase().contains(name.toLowerCase()))
@@ -52,6 +63,8 @@ public class ClientService {
     }
 
     public void removeClient(Long id) {
+        lock.writeLock().lock();
         repository.delete(id);
+        lock.writeLock().unlock();
     }
 }
