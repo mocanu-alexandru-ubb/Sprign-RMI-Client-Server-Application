@@ -1,4 +1,4 @@
-# Lab 5: Networking
+# Lab 5: Networking <3
 - continue to work in teams
 - convert your project to a client-server application using sockets
 - **simulate an RPC server** (messages sent between the client and the server must be handled in a unitary manner (simulate RPC calls) )
