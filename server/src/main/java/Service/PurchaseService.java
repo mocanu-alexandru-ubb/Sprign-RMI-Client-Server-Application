@@ -25,7 +25,7 @@ public class PurchaseService {
         this.candyRepository = candyRepository;
     }
 
-    public void addPurchase(Long purchaseId, Long clientId, Long candyId, int quantity) throws ValidatorException {
+    public void addPurchase(Long purchaseId, Long clientId, Long candyId, Integer quantity) throws ValidatorException {
         var purchase = new Purchase(purchaseId, clientId, candyId, quantity);
         lock.writeLock().lock();
         repository.findOne(purchase.getPurchaseID())
@@ -34,7 +34,7 @@ public class PurchaseService {
         lock.writeLock().unlock();
     }
 
-    public Set<Purchase> getAllPurchases() {
+    public Iterable<Purchase> getAllPurchases() {
         lock.readLock().lock();
         Iterable<Purchase> purchases = repository.findAll();
         lock.readLock().unlock();
@@ -58,7 +58,7 @@ public class PurchaseService {
      *
      * @return a {@code Set} - a set containing all purchases of a given client.
      */
-    public Set<Purchase> getAllByClient(Long id) {
+    public Iterable<Purchase> getAllByClient(Long id) {
         lock.readLock().lock();
         Iterable<Purchase> purchases = repository.findAll();
         lock.writeLock().unlock();
@@ -83,7 +83,7 @@ public class PurchaseService {
      *          id of the candy
      * @return a {@code Set} - a set containing all the purchases of a given candy.
      */
-    public Set<Purchase> getAllByCandy(Long id) {
+    public Iterable<Purchase> getAllByCandy(Long id) {
         lock.readLock().lock();
         Iterable<Purchase> purchases = repository.findAll();
         lock.readLock().unlock();

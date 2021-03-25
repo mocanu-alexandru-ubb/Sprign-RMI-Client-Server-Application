@@ -22,7 +22,7 @@ public class CandyService {
         this.repository = repository;
     }
 
-    public void addCandy(Long id, String name, float price) throws ValidatorException {
+    public void addCandy(Long id, String name, Float price) throws ValidatorException {
         Candy candy = new Candy(id, name, price);
         lock.writeLock().lock();
         repository.findOne(candy.getCandyID())
@@ -45,10 +45,11 @@ public class CandyService {
         return entity.isPresent();
     }
 
-    public Set<Candy> getAllCandies() {
+    public Iterable<Candy> getAllCandies() {
         lock.readLock().lock();
         Iterable<Candy> candies = repository.findAll();
         lock.readLock().unlock();
+        System.out.println(candies);
         return StreamSupport.stream(candies.spliterator(), false).collect(Collectors.toSet());
     }
 
@@ -62,7 +63,7 @@ public class CandyService {
      * @return a {@code Set} - a set containing all entries that have a price lower than the given price.
      */
 
-    public Set<Candy> filterByPrice(float price) {
+    public Iterable<Candy> filterByPrice(Float price) {
         lock.readLock().lock();
         Iterable<Candy> candies = repository.findAll();
         lock.readLock().unlock();

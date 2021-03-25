@@ -11,6 +11,7 @@ import Services.PurchaseService;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Console {
@@ -51,8 +52,9 @@ public class Console {
                 .takeWhile((str) -> !str.equals("exit"))
                 .forEach((str) -> {
                     try { cmds.getOrDefault(str, this::noFunction).run();
-                    } catch (InputMismatchException e) {System.out.println(e);}
+                    } catch (InputMismatchException e) {System.out.println(e.getMessage());}
                 });
+        timer.cancel();
     }
 
     private void updateClient() throws ValidatorException, InputMismatchException{
@@ -65,7 +67,6 @@ public class Console {
 
         System.out.println("Input new client name:");
         String clientName = scanner.nextLine();
-        Client client = new Client(clientID, clientName);
 
         responseBuffer.add(new FutureResponse<>(clientService.removeClient(clientID),
                 new ResponseMapper<>(response -> "deleted")));
@@ -102,7 +103,7 @@ public class Console {
                         .nextLine());
 
         responseBuffer.add(new FutureResponse<>(purchaseService.removeByCandyId(candyId),
-                new ResponseMapper<>(response -> "removed candy")));
+                new ResponseMapper<>(response -> "removed purchase")));
         responseBuffer.add(new FutureResponse<>(candyService.removeCandy(candyId),
                 new ResponseMapper<>(response -> "removed candy")));
     }
@@ -187,7 +188,6 @@ public class Console {
 
         System.out.println("Input candy name:");
         String candyName = scanner.nextLine();
-        Candy candy = new Candy(candyID, candyName, price);
 
         responseBuffer.add(new FutureResponse<>(candyService.addCandy(candyID,candyName,price),
                 new ResponseMapper<>(response -> "added candy")));
@@ -215,7 +215,6 @@ public class Console {
 
         System.out.println("Input new candy name:");
         String candyName = scanner.nextLine();
-        Candy candy = new Candy(candyID, candyName, price);
 
 
         responseBuffer.add(new FutureResponse<>(candyService.removeCandy(candyID),
@@ -232,7 +231,21 @@ public class Console {
             e.printStackTrace();
         }
         if(students != null) {
-            students.forEach(System.out::println);
+            responseBuffer.add(
+                    new FutureResponse<>(
+                            clientService.getAllClients(),
+                            new ResponseMapper<>(response -> {
+                                System.out.println("started mapping");
+                                if (!response.iterator().hasNext()) {
+                                    return "No clients found!";
+                                }
+                                return "List of clients\n" +
+                                        response.stream()
+                                                .map(client -> String.format("%d %s", client.getId(), client.getName()))
+                                                .collect(Collectors.joining("\n", "", "\n"));
+                            })
+                    )
+            );
         }
     }
 
@@ -295,7 +308,6 @@ public class Console {
                             throw new InputMismatchException();
                         })
                         .nextLine());
-        Purchase purchase = new Purchase(purchaseId, clientID, candyId, quantity);
 
         responseBuffer.add(new FutureResponse<>(purchaseService.addPurchase(purchaseId,clientID,candyId,quantity),
                 new ResponseMapper<>(response -> "added purchase")));
@@ -336,7 +348,6 @@ public class Console {
                             throw new InputMismatchException();
                         })
                         .nextLine());
-        Purchase purchase = new Purchase(purchaseId, clientID, candyId, quantity);
 
 
         responseBuffer.add(new FutureResponse<>(purchaseService.removePurchase(purchaseId),
@@ -363,7 +374,6 @@ public class Console {
 
         System.out.println("Input client name:");
         String clientName = scanner.nextLine();
-        Client client = new Client(clientID, clientName);
 
         responseBuffer.add(new FutureResponse<>(clientService.addClient(clientID, clientName),
                 new ResponseMapper<>(response -> "added client")));

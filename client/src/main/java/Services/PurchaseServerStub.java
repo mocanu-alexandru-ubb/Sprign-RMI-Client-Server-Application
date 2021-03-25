@@ -1,10 +1,10 @@
 package Services;
 
-import Domain.Candy;
-import Domain.Client;
 import Domain.Purchase;
+import Exceptions.StoreException;
 import Exceptions.ValidatorException;
 import Networking.Message;
+import Networking.ParserPurchase;
 import Networking.TCPClient;
 
 import java.util.Optional;
@@ -12,10 +12,11 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 public class PurchaseServerStub implements PurchaseService{
 
-    private ExecutorService executorService;
+    private final ExecutorService executorService;
 
     public PurchaseServerStub(ExecutorService executorService) {
         this.executorService = executorService;
@@ -34,7 +35,9 @@ public class PurchaseServerStub implements PurchaseService{
             if(res.getHeader().equals("success")) {
                 return null;
             }
-
+            if (res.getHeader().equals("exception")) {
+                throw new StoreException(res.getBody().get(0));
+            }
             throw new RuntimeException("invalid response!");
         };
         return executorService.submit(callable);
@@ -46,7 +49,13 @@ public class PurchaseServerStub implements PurchaseService{
             Message message = new Message("PurchaseService:getAllPurchases");
             Message res = TCPClient.sendAndReceive(message);
             if(res.getHeader().equals("success")) {
-                return null;
+                var parser = new ParserPurchase();
+                return res.getBody().stream()
+                        .map(parser::decode)
+                        .collect(Collectors.toUnmodifiableSet());
+            }
+            if (res.getHeader().equals("exception")) {
+                throw new StoreException(res.getBody().get(0));
             }
             throw new RuntimeException("invalid response!");
         };
@@ -63,6 +72,9 @@ public class PurchaseServerStub implements PurchaseService{
             if(res.getHeader().equals("success")) {
                 return null;
             }
+            if (res.getHeader().equals("exception")) {
+                throw new StoreException(res.getBody().get(0));
+            }
             throw new RuntimeException("invalid response!");
         };
         return executorService.submit(callable);
@@ -76,7 +88,13 @@ public class PurchaseServerStub implements PurchaseService{
 
             Message res = TCPClient.sendAndReceive(message);
             if(res.getHeader().equals("success")) {
-                return null;
+                var parser = new ParserPurchase();
+                return res.getBody().stream()
+                        .map(parser::decode)
+                        .collect(Collectors.toUnmodifiableSet());
+            }
+            if (res.getHeader().equals("exception")) {
+                throw new StoreException(res.getBody().get(0));
             }
             throw new RuntimeException("invalid response!");
         };
@@ -93,6 +111,9 @@ public class PurchaseServerStub implements PurchaseService{
             if(res.getHeader().equals("success")) {
                 return null;
             }
+            if (res.getHeader().equals("exception")) {
+                throw new StoreException(res.getBody().get(0));
+            }
             throw new RuntimeException("invalid response!");
         };
         return executorService.submit(callable);
@@ -106,7 +127,13 @@ public class PurchaseServerStub implements PurchaseService{
 
             Message res = TCPClient.sendAndReceive(message);
             if(res.getHeader().equals("success")) {
-                return null;
+                var parser = new ParserPurchase();
+                return res.getBody().stream()
+                        .map(parser::decode)
+                        .collect(Collectors.toUnmodifiableSet());
+            }
+            if (res.getHeader().equals("exception")) {
+                throw new StoreException(res.getBody().get(0));
             }
             throw new RuntimeException("invalid response!");
         };
@@ -117,9 +144,13 @@ public class PurchaseServerStub implements PurchaseService{
     public Future<Void> removeByCandyId(Long id) {
         Callable<Void> callable = () -> {
             Message message = new Message("PurchaseService:removeByCandyId");
+            message.addString(id.toString());
             Message res = TCPClient.sendAndReceive(message);
             if(res.getHeader().equals("success")) {
                 return null;
+            }
+            if (res.getHeader().equals("exception")) {
+                throw new StoreException(res.getBody().get(0));
             }
             throw new RuntimeException("invalid response!");
         };
@@ -130,9 +161,14 @@ public class PurchaseServerStub implements PurchaseService{
     public Future<Optional<Purchase>> getOne(Long id) {
         Callable<Optional<Purchase>> callable = () -> {
             Message message = new Message("PurchaseService:getOne");
+            message.addString(id.toString());
             Message res = TCPClient.sendAndReceive(message);
             if(res.getHeader().equals("success")) {
-                return null;
+                var parser = new ParserPurchase();
+                return Optional.of(parser.decode(res.getBody().get(0)));
+            }
+            if (res.getHeader().equals("exception")) {
+                throw new StoreException(res.getBody().get(0));
             }
             throw new RuntimeException("invalid response!");
         };
@@ -147,7 +183,10 @@ public class PurchaseServerStub implements PurchaseService{
 
             Message res = TCPClient.sendAndReceive(message);
             if(res.getHeader().equals("success")) {
-                return null;
+                return res.getBody().get(0);
+            }
+            if (res.getHeader().equals("exception")) {
+                throw new StoreException(res.getBody().get(0));
             }
             throw new RuntimeException("invalid response!");
         };

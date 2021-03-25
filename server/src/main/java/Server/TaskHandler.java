@@ -29,7 +29,9 @@ public class TaskHandler implements Runnable{
         try (InputStream inputStream = client.getInputStream();
              OutputStream outputstream = client.getOutputStream()) {
             Message message = Message.read(inputStream);
+            System.out.println(message);
             Message response = ServiceHandler.handleMessage(message, clientSrv, candySrv, purchaseSrv);
+            System.out.println(response);
             Objects.requireNonNull(response, "error computing response");
             Message.write(response, outputstream);
             client.close();

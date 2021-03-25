@@ -1,5 +1,7 @@
 package UI;
 
+import Exceptions.StoreException;
+
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.function.Function;
@@ -22,7 +24,14 @@ public class ResponseMapper<T> implements Function<Future<T>, String> {
             throw new RuntimeException("operation interrupted");
         }
         catch (ExecutionException err){
-            throw new RuntimeException(err);
+            if (err.getCause() instanceof StoreException)
+            {
+                return err.getCause().getMessage();
+            }
+            else
+            {
+                throw new RuntimeException(err);
+            }
         }
     }
 }

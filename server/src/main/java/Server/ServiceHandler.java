@@ -29,6 +29,7 @@ public class ServiceHandler {
         typeParsers.put(Client.class, new ParserClient());
         typeParsers.put(Candy.class, new ParserCandy());
         typeParsers.put(Purchase.class, new ParserPurchase());
+        typeParsers.put(Float.class, new ParserFloat());
     }
 
     public static Message handleMessage(
@@ -87,7 +88,6 @@ public class ServiceHandler {
                         .collect(Collectors.toList());
                 Message response = new Message("success");
                 values.forEach(response::addString);
-                System.out.println(response.getBody());
                 return response;
             }
             return new Message("success");

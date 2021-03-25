@@ -19,9 +19,11 @@ public class Main {
         ClientValidator clientValidator = new ClientValidator();
         CandyValidator candyValidator = new CandyValidator();
         PurchaseValidator purchaseValidator = new PurchaseValidator();
+
         Repository<Long, Client> clientRepo = new GenericRepo<Long, Client>(clientValidator);
         Repository<Long, Candy> candyRepository = new GenericRepo<Long, Candy>(candyValidator);
         Repository<Long, Purchase> purchaseRepository = new GenericRepo<Long, Purchase>(purchaseValidator);
+
         ClientService clientService = new ClientService(clientRepo);
         CandyService candySrv = new CandyService(candyRepository);
         PurchaseService purchaseSrv = new PurchaseService(purchaseRepository, candyRepository);
@@ -29,5 +31,6 @@ public class Main {
         ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         Server server = new Server(clientService, candySrv, purchaseSrv, executorService);
         server.run();
+        executorService.shutdown();
     }
 }

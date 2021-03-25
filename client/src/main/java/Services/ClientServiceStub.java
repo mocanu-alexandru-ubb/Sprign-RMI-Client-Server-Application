@@ -1,8 +1,10 @@
 package Services;
 
 import Domain.Client;
+import Exceptions.StoreException;
 import Exceptions.ValidatorException;
 import Networking.Message;
+import Networking.ParserClient;
 import Networking.TCPClient;
 
 import java.io.Serializable;
@@ -11,10 +13,11 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 public class ClientServiceStub implements ClientService{
 
-    private ExecutorService executorService;
+    private final ExecutorService executorService;
 
     public ClientServiceStub(ExecutorService executorService) {
         this.executorService = executorService;
@@ -31,7 +34,9 @@ public class ClientServiceStub implements ClientService{
             if(res.getHeader().equals("success")) {
                 return null;
             }
-
+            if (res.getHeader().equals("exception")) {
+                throw new StoreException(res.getBody().get(0));
+            }
             throw new RuntimeException("invalid response!");
         };
         return executorService.submit(callable);
@@ -47,7 +52,11 @@ public class ClientServiceStub implements ClientService{
             Message res = TCPClient.sendAndReceive(message);
 
             if(res.getHeader().equals("success")) {
-                return null;
+                var parser = new ParserClient();
+                return Optional.of(parser.decode(res.getBody().get(0)));
+            }
+            if (res.getHeader().equals("exception")) {
+                throw new StoreException(res.getBody().get(0));
             }
             throw new RuntimeException("invalid response!");
         };
@@ -62,7 +71,10 @@ public class ClientServiceStub implements ClientService{
 
             Message res = TCPClient.sendAndReceive(message);
             if(res.getHeader().equals("success")) {
-                return null;
+                return true;
+            }
+            if (res.getHeader().equals("exception")) {
+                throw new StoreException(res.getBody().get(0));
             }
             throw new RuntimeException("invalid response!");
         };
@@ -75,7 +87,13 @@ public class ClientServiceStub implements ClientService{
             Message message = new Message("ClientService:getAllClients");
             Message res = TCPClient.sendAndReceive(message);
             if(res.getHeader().equals("success")) {
-                return null;
+                var parser = new ParserClient();
+                return res.getBody().stream()
+                        .map(parser::decode)
+                        .collect(Collectors.toUnmodifiableSet());
+            }
+            if (res.getHeader().equals("exception")) {
+                throw new StoreException(res.getBody().get(0));
             }
             throw new RuntimeException("invalid response!");
         };
@@ -96,7 +114,13 @@ public class ClientServiceStub implements ClientService{
 
             Message res = TCPClient.sendAndReceive(message);
             if(res.getHeader().equals("success")) {
-                return null;
+                var parser = new ParserClient();
+                return res.getBody().stream()
+                        .map(parser::decode)
+                        .collect(Collectors.toUnmodifiableSet());
+            }
+            if (res.getHeader().equals("exception")) {
+                throw new StoreException(res.getBody().get(0));
             }
             throw new RuntimeException("invalid response!");
         };
@@ -118,6 +142,9 @@ public class ClientServiceStub implements ClientService{
 
             if(res.getHeader().equals("success")) {
                 return null;
+            }
+            if (res.getHeader().equals("exception")) {
+                throw new StoreException(res.getBody().get(0));
             }
             throw new RuntimeException("invalid response!");
         };

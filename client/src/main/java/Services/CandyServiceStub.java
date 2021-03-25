@@ -1,8 +1,9 @@
 package Services;
 
 import Domain.Candy;
-import Domain.Client;
+import Exceptions.StoreException;
 import Networking.Message;
+import Networking.ParserCandy;
 import Networking.TCPClient;
 
 import java.util.Optional;
@@ -10,10 +11,11 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 public class CandyServiceStub implements CandyService{
 
-    private ExecutorService executorService;
+    private final ExecutorService executorService;
 
     public CandyServiceStub(ExecutorService executorService) {
         this.executorService = executorService;
@@ -31,7 +33,9 @@ public class CandyServiceStub implements CandyService{
             if(res.getHeader().equals("success")) {
                 return null;
             }
-
+            if (res.getHeader().equals("exception")) {
+                throw new StoreException(res.getBody().get(0));
+            }
             throw new RuntimeException("invalid response!");
         };
         return executorService.submit(callable);
@@ -46,7 +50,11 @@ public class CandyServiceStub implements CandyService{
             Message res = TCPClient.sendAndReceive(message);
 
             if(res.getHeader().equals("success")) {
-                return null;
+                var parser = new ParserCandy();
+                return Optional.of(parser.decode(res.getBody().get(0)));
+            }
+            if (res.getHeader().equals("exception")) {
+                throw new StoreException(res.getBody().get(0));
             }
             throw new RuntimeException("invalid response!");
         };
@@ -64,7 +72,13 @@ public class CandyServiceStub implements CandyService{
             Message message = new Message("CandyService:getAllCandies");
             Message res = TCPClient.sendAndReceive(message);
             if(res.getHeader().equals("success")) {
-                return null;
+                var parser = new ParserCandy();
+                return res.getBody().stream()
+                        .map(parser::decode)
+                        .collect(Collectors.toUnmodifiableSet());
+            }
+            if (res.getHeader().equals("exception")) {
+                throw new StoreException(res.getBody().get(0));
             }
             throw new RuntimeException("invalid response!");
         };
@@ -79,7 +93,13 @@ public class CandyServiceStub implements CandyService{
 
             Message res = TCPClient.sendAndReceive(message);
             if(res.getHeader().equals("success")) {
-                return null;
+                var parser = new ParserCandy();
+                return res.getBody().stream()
+                        .map(parser::decode)
+                        .collect(Collectors.toUnmodifiableSet());
+            }
+            if (res.getHeader().equals("exception")) {
+                throw new StoreException(res.getBody().get(0));
             }
             throw new RuntimeException("invalid response!");
         };
@@ -88,6 +108,20 @@ public class CandyServiceStub implements CandyService{
 
     @Override
     public Future<Void> removeCandy(Long id) {
-        return null;
+        Callable<Void> callable = () -> {
+            Message message = new Message("CandyService:removeCandy");
+            message.addString(id.toString());
+
+            Message res = TCPClient.sendAndReceive(message);
+
+            if(res.getHeader().equals("success")) {
+                return null;
+            }
+            if (res.getHeader().equals("exception")) {
+                throw new StoreException(res.getBody().get(0));
+            }
+            throw new RuntimeException("invalid response!");
+        };
+        return executorService.submit(callable);
     }
 }

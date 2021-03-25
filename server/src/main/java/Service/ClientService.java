@@ -52,7 +52,7 @@ public class ClientService {
      *
      * @return a {@code Set} - a set containing all entries that have the given string in their name.
      */
-    public Set<Client> filterByName(String name) {
+    public Iterable<Client> filterByName(String name) {
         lock.readLock().lock();
         Iterable<Client> clients = repository.findAll();
         lock.readLock().unlock();
