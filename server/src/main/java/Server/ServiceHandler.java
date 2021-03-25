@@ -1,8 +1,12 @@
 package Server;
 
+import Domain.Candy;
 import Domain.Client;
+import Domain.Purchase;
 import Networking.*;
+import Service.CandyService;
 import Service.ClientService;
+import Service.PurchaseService;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -23,15 +27,21 @@ public class ServiceHandler {
         typeParsers.put(String.class, new ParserString());
         typeParsers.put(Long.class, new ParserLong());
         typeParsers.put(Client.class, new ParserClient());
+        typeParsers.put(Candy.class, new ParserCandy());
+        typeParsers.put(Purchase.class, new ParserPurchase());
     }
 
     public static Message handleMessage(
             Message message,
-            ClientService clientSrv
+            ClientService clientSrv,
+            CandyService candySrv,
+            PurchaseService purchaseSrv
     )
     {
         Map<String, Object> services = new HashMap<>();
         services.put("ClientService", clientSrv);
+        services.put("CandyService", candySrv);
+        services.put("PurchaseService", purchaseSrv);
 
         String serviceName = message.getHeader().split(":")[0];
         Object serviceObject = services.get(serviceName);
@@ -77,6 +87,7 @@ public class ServiceHandler {
                         .collect(Collectors.toList());
                 Message response = new Message("success");
                 values.forEach(response::addString);
+                System.out.println(response.getBody());
                 return response;
             }
             return new Message("success");

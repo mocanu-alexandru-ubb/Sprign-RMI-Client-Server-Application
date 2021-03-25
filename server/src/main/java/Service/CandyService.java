@@ -7,6 +7,7 @@ import Repository.Repository;
 
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 /*
@@ -14,28 +15,40 @@ import java.util.stream.StreamSupport;
  * */
 
 public class CandyService {
+    private static final ReentrantReadWriteLock lock = new ReentrantReadWriteLock(true);
     private final Repository<Long, Candy> repository;
 
     public CandyService(Repository<Long, Candy> repository) {
         this.repository = repository;
     }
 
-    public void addCandy(Candy candy) throws ValidatorException {
+    public void addCandy(Long id, String name, float price) throws ValidatorException {
+        Candy candy = new Candy(id, name, price);
+        lock.writeLock().lock();
         repository.findOne(candy.getCandyID())
-                .ifPresent((element) -> {throw new RepoException("id already taken!");});
+                .ifPresent((element) -> {lock.writeLock().unlock(); throw new RepoException("id already taken!");});
         repository.save(candy);
+        lock.writeLock().unlock();
     }
 
     public Optional<Candy> getOne(Long ID) {
-        return repository.findOne(ID);
+        lock.readLock().lock();
+        var entity = repository.findOne(ID);
+        lock.readLock().unlock();
+        return entity;
     }
 
     public boolean findCandy(Long ID) {
-        return repository.findOne(ID).isPresent();
+        lock.readLock().lock();
+        var entity = repository.findOne(ID);
+        lock.readLock().unlock();
+        return entity.isPresent();
     }
 
     public Set<Candy> getAllCandies() {
+        lock.readLock().lock();
         Iterable<Candy> candies = repository.findAll();
+        lock.readLock().unlock();
         return StreamSupport.stream(candies.spliterator(), false).collect(Collectors.toSet());
     }
 
@@ -50,7 +63,9 @@ public class CandyService {
      */
 
     public Set<Candy> filterByPrice(float price) {
+        lock.readLock().lock();
         Iterable<Candy> candies = repository.findAll();
+        lock.readLock().unlock();
         return StreamSupport
                 .stream(candies.spliterator(), false)
                 .filter(c -> c.getPrice() < price)
@@ -66,6 +81,8 @@ public class CandyService {
      *
      */
     public void removeCandy(Long id) {
+        lock.writeLock().lock();
         repository.delete(id);
+        lock.writeLock().unlock();
     }
 }
