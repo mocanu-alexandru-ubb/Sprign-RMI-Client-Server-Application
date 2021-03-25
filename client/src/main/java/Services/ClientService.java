@@ -2,6 +2,7 @@ package Services;
 
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import Domain.Client;
 import Exceptions.ValidatorException;
@@ -12,8 +13,7 @@ public interface ClientService {
     Future<Optional<Client>> getOne(Long ID);
 
     Future<Boolean> findClient(Long ID);
-
-    Future<Set<Client>> getAllClients();
+    CompletableFuture<Set<Client>> getAllClients();
 
 
     /**

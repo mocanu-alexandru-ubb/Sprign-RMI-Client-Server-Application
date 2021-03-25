@@ -11,6 +11,7 @@ import java.io.Serializable;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
@@ -82,7 +83,7 @@ public class ClientServiceStub implements ClientService{
     }
 
     @Override
-    public Future<Set<Client>> getAllClients() {
+    public CompletableFuture<Set<Client>> getAllClients() {
         Callable<Set<Client>> callable = () -> {
             Message message = new Message("ClientService:getAllClients");
             Message res = TCPClient.sendAndReceive(message);
