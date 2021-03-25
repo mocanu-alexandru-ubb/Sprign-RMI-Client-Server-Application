@@ -127,7 +127,6 @@ public class Console {
                         .filter(Scanner::hasNextLong)
                         .orElseThrow(() -> {scanner.nextLine(); throw new InputMismatchException();})
                         .nextLine());
-
         responseBuffer.add(new FutureResponse<>(purchaseService.removeByClientId(clientId),
                 new ResponseMapper<>(response -> "removed client")));
         responseBuffer.add(new FutureResponse<>(clientService.removeClient(clientId),
@@ -226,7 +225,10 @@ public class Console {
     private void printAllStudents() {
         Set<Client> students = null;
         try {
-            students = clientService.getAllClients().get();
+            var futureStudents = clientService.getAllClients();
+            System.out.println("got future");
+            students = futureStudents.get();
+            //students = clientService.getAllClients().get();
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }
@@ -235,7 +237,6 @@ public class Console {
                     new FutureResponse<>(
                             clientService.getAllClients(),
                             new ResponseMapper<>(response -> {
-                                System.out.println("started mapping");
                                 if (!response.iterator().hasNext()) {
                                     return "No clients found!";
                                 }

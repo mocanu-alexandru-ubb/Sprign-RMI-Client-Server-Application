@@ -1,9 +1,8 @@
-package Store.Repository.DBRepo;
+package Repository;
 
-import Store.Domain.Candy;
-import Store.Domain.Validator.Validator;
-import Store.Domain.Validator.ValidatorException;
-import Store.Repository.Repository;
+import Domain.Candy;
+import Exceptions.ValidatorException;
+import Validator.Validator;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

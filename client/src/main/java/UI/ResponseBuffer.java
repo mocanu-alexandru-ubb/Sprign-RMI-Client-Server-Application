@@ -6,7 +6,7 @@ import java.util.stream.Collectors;
 
 public class ResponseBuffer {
     private List<FutureResponse<?>> responses = new LinkedList<>();
-
+    // completable future
     public List<String> getResponses() {
         List<FutureResponse<?>> completedFutures = responses.stream()
                 .filter(FutureResponse::available)

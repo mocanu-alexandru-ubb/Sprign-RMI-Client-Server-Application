@@ -88,6 +88,7 @@ public class ClientServiceStub implements ClientService{
             Message res = TCPClient.sendAndReceive(message);
             if(res.getHeader().equals("success")) {
                 var parser = new ParserClient();
+                Thread.sleep(10000);
                 return res.getBody().stream()
                         .map(parser::decode)
                         .collect(Collectors.toUnmodifiableSet());

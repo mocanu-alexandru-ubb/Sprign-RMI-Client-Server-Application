@@ -8,6 +8,7 @@ import java.util.Optional;
 public class ParserClient implements Parser<Client> {
     @Override
     public String encode(Object entity) {
+        // object input/output stream
         Client client = (Client) entity;
         return String.format("%d,%s", client.getClientID(), client.getName());
     }
