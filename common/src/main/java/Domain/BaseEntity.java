@@ -3,13 +3,12 @@ package Domain;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.io.Serializable;
 
 /**
  * @author -.
  */
-public class BaseEntity<ID> {
+public class BaseEntity<ID> implements Serializable {
     private ID id;
 
     public BaseEntity(ID id){

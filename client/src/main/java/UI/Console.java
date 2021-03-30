@@ -8,30 +8,36 @@ import Exceptions.ValidatorException;
 import Services.CandyService;
 import Services.ClientService;
 import Services.PurchaseService;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 public class Console {
     private final Scanner scanner = new Scanner(System.in);
-    private final ClientService clientService;
+    @Autowired
+    private ClientService clientService;
+    @Autowired
+    private CandyService candyService;
+    @Autowired
+    private PurchaseService purchaseService;
+    @Autowired
+    public ResponseBuffer responseBuffer;
+    @Autowired
+    private ExecutorService executorService;
+
     private final HashMap<String, Runnable> cmds = new HashMap<>();
-    private final CandyService candyService;
-    private final PurchaseService purchaseService;
-    public ResponseBuffer responseBuffer = new ResponseBuffer();
     public Timer timer = new Timer();
 
-    public Console(ClientService clientService, CandyService candyService, PurchaseService purchaseService) {
-        this.clientService = clientService;
-        this.candyService = candyService;
-        this.purchaseService = purchaseService;
-        timer.scheduleAtFixedRate(new ResponseDaemon(responseBuffer),10 * 1000, 10 * 1000);
-        cmds.put("printAllClients", this::printAllStudents);
+    public Console() {
+/*        cmds.put("printAllClients", this::printAllStudents);
         cmds.put("printAllCandies", this::printAllCandies);
         cmds.put("printAllPurchases", this::printAllPurchases);
-        cmds.put("updateClient", this::updateClient);
         cmds.put("updateCandy", this::updateCandy);
         cmds.put("updatePurchase", this::updatePurchase);
         cmds.put("addClient", this::addClient);
@@ -42,7 +48,8 @@ public class Console {
         cmds.put("removeCandyCascade", this::removeCandyCascade);
         cmds.put("removeClient", this::removeClient);
         cmds.put("removeClientCascade", this::removeClientCascade);
-        cmds.put("filterClientByName", this::filterClientsByName);
+        cmds.put("filterClientByName", this::filterClientsByName);*/
+        cmds.put("updateClient", this::updateClient);
         cmds.put("filterByPrice", this::filterCandyByPrice);
         cmds.put("help", () -> System.out.println(cmds.keySet()));
     }
@@ -68,10 +75,15 @@ public class Console {
         System.out.println("Input new client name:");
         String clientName = scanner.nextLine();
 
-        responseBuffer.add(new FutureResponse<>(clientService.removeClient(clientID),
-                new ResponseMapper<>(response -> "deleted")));
-        responseBuffer.add(new FutureResponse<>(clientService.addClient(clientID, clientName),
-                new ResponseMapper<>(response -> "added")));
+        Callable<Void> callable = () ->
+        {
+            clientService.updateClient(clientID, clientName);
+            return null;
+        };
+        var call = executorService.submit(callable);
+
+        responseBuffer.add(new FutureResponse<>(call,
+                new ResponseMapper<>(response -> "updated")));
 
     }
 
@@ -90,8 +102,22 @@ public class Console {
                             throw new InputMismatchException();
                         })
                         .nextLine());
-        responseBuffer.add(new FutureResponse<>(candyService.filterByPrice(price),
-                new ResponseMapper<>(response -> String.format("Candies with price > %f", price))));
+
+
+        Callable<Iterable<Candy>> callable = () -> candyService.filterByPrice(price);
+        var call = executorService.submit(callable);
+        System.out.println("Submitted");
+
+        responseBuffer.add(new FutureResponse<>(call,
+                    new ResponseMapper<>(response -> {
+                        if (!response.iterator().hasNext()) {
+                            return "No clients found!";
+                        }
+                        return "List of clients\n" +
+                                StreamSupport.stream(response.spliterator(), false)
+                                        .map(candy -> String.format("%d %s %f", candy.getCandyID(), candy.getName(), candy.getPrice()))
+                                        .collect(Collectors.joining("\n", "", "\n"));
+                    })));
     }
 
     private void removeCandyCascade() {
@@ -102,11 +128,14 @@ public class Console {
                         .orElseThrow(() -> {scanner.nextLine(); throw new InputMismatchException();})
                         .nextLine());
 
-        responseBuffer.add(new FutureResponse<>(purchaseService.removeByCandyId(candyId),
+        Callable<Void> callable = () -> {purchaseService.removeByCandyId(candyId); candyService.removeCandy(candyId); return null;};
+        var call = executorService.submit(callable);
+        System.out.println("Submitted");
+
+        responseBuffer.add(new FutureResponse<>(call,
                 new ResponseMapper<>(response -> "removed purchase")));
-        responseBuffer.add(new FutureResponse<>(candyService.removeCandy(candyId),
-                new ResponseMapper<>(response -> "removed candy")));
     }
+    /*
 
     private void removeCandy() {
         System.out.println("Input candy id:");
@@ -157,14 +186,14 @@ public class Console {
                 new ResponseMapper<>(response -> "removed purchase")));
     }
 
-    /**
+    *//**
      * Saves the given entity.
      *
      * @throws ValidatorException
      *             if the given name is not valid.
      * @throws InputMismatchException
      *             if the given id is not valid.
-     */
+     *//*
     private void addCandy() throws ValidatorException, InputMismatchException {
         System.out.println("Input candyID:");
         var candyID = Long.valueOf(
@@ -188,7 +217,15 @@ public class Console {
         System.out.println("Input candy name:");
         String candyName = scanner.nextLine();
 
-        responseBuffer.add(new FutureResponse<>(candyService.addCandy(candyID,candyName,price),
+
+        Callable<Void> callable = () ->
+        {
+            candyService.addCandy(candyID, candyName, price);
+            return null;
+        };
+        var call = executorService.submit(callable);
+
+        responseBuffer.add(new FutureResponse<>(call,
                 new ResponseMapper<>(response -> "added candy")));
     }
 
@@ -223,55 +260,54 @@ public class Console {
     }
 
     private void printAllStudents() {
-        Set<Client> students = null;
-        try {
-            var futureStudents = clientService.getAllClients();
-            System.out.println("got future");
-            students = futureStudents.get();
-            //students = clientService.getAllClients().get();
-        } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-        }
-        if(students != null) {
-            responseBuffer.add(
-                    new FutureResponse<>(
-                            clientService.getAllClients(),
-                            new ResponseMapper<>(response -> {
-                                if (!response.iterator().hasNext()) {
-                                    return "No clients found!";
-                                }
-                                return "List of clients\n" +
-                                        response.stream()
-                                                .map(client -> String.format("%d %s", client.getId(), client.getName()))
-                                                .collect(Collectors.joining("\n", "", "\n"));
-                            })
-                    )
-            );
-        }
+        responseBuffer.add(
+                new FutureResponse<>(
+                        clientService.getAllClients(),
+                        new ResponseMapper<>(response -> {
+                            if (!response.iterator().hasNext()) {
+                                return "No clients found!";
+                            }
+                            return "List of clients\n" +
+                                    response.stream()
+                                            .map(Client::toString)
+                                            .collect(Collectors.joining("\n", "", "\n"));
+                        })
+                )
+        );
     }
 
     private void printAllCandies() {
-        Set<Candy> candies = null;
-        try {
-            candies = candyService.getAllCandies().get();
-        } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-        }
-        if(candies != null) {
-            candies.forEach(System.out::println);
-        }
+        responseBuffer.add(
+                new FutureResponse<>(
+                        candyService.getAllCandies(),
+                        new ResponseMapper<>(response -> {
+                            if (!response.iterator().hasNext()) {
+                                return "No clients found!";
+                            }
+                            return "List of clients\n" +
+                                    response.stream()
+                                            .map(Candy::toString)
+                                            .collect(Collectors.joining("\n", "", "\n"));
+                        })
+                )
+        );
     }
 
     private void printAllPurchases() {
-        Set<Purchase> purchases = null;
-        try {
-            purchases = purchaseService.getAllPurchases().get();
-        } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-        }
-        if (purchases != null) {
-            purchases.forEach(System.out::println);
-        }
+        responseBuffer.add(
+                new FutureResponse<>(
+                        purchaseService.getAllPurchases(),
+                        new ResponseMapper<>(response -> {
+                            if (!response.iterator().hasNext()) {
+                                return "No clients found!";
+                            }
+                            return "List of clients\n" +
+                                    response.stream()
+                                            .map(Purchase::toString)
+                                            .collect(Collectors.joining("\n", "", "\n"));
+                        })
+                )
+        );
     }
 
     private void addPurchase() throws ValidatorException, InputMismatchException{
@@ -357,14 +393,14 @@ public class Console {
                 new ResponseMapper<>(response -> "added purchase")));
     }
 
-    /**
+    *//**
      * Saves the given entity.
      *
      * @throws ValidatorException
      *             if the given name is not valid.
      * @throws InputMismatchException
      *             if the given id is not valid.
-     */
+     *//*
     private void addClient() throws ValidatorException, InputMismatchException{
         System.out.println("Input clientId:");
         var clientID = Long.valueOf(
@@ -383,15 +419,20 @@ public class Console {
     private void filterClientsByName() {
         System.out.println("Input name:");
         String name = scanner.nextLine();
-        Set<Client> clients = null;
-        try {
-            clients = this.clientService.filterByName(name).get();
-        } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-        }
-        if(clients != null) {
-            clients.forEach(System.out::println);
-        }
-    }
+        responseBuffer.add(
+                new FutureResponse<>(
+                        clientService.filterByName(name),
+                        new ResponseMapper<>(response -> {
+                            if (!response.iterator().hasNext()) {
+                                return "No clients found!";
+                            }
+                            return "List of clients\n" +
+                                    response.stream()
+                                            .map(client -> String.format("%d %s", client.getId(), client.getName()))
+                                            .collect(Collectors.joining("\n", "", "\n"));
+                        })
+                )
+        );
+    }*/
 
 }

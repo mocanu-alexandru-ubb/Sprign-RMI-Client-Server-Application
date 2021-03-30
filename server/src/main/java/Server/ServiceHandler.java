@@ -4,9 +4,9 @@ import Domain.Candy;
 import Domain.Client;
 import Domain.Purchase;
 import Networking.*;
-import Service.CandyService;
-import Service.ClientService;
-import Service.PurchaseService;
+import Services.CandyServiceSkeleton;
+import Services.ClientServiceSkeleton;
+import Services.PurchaseServiceSkeleton;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -34,9 +34,9 @@ public class ServiceHandler {
 
     public static Message handleMessage(
             Message message,
-            ClientService clientSrv,
-            CandyService candySrv,
-            PurchaseService purchaseSrv
+            ClientServiceSkeleton clientSrv,
+            CandyServiceSkeleton candySrv,
+            PurchaseServiceSkeleton purchaseSrv
     )
     {
         Map<String, Object> services = new HashMap<>();

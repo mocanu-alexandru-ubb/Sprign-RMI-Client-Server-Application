@@ -4,9 +4,10 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import java.io.Serializable;
 import java.util.List;
 
-public class Client extends BaseEntity<Long>{
+public class Client extends BaseEntity<Long> implements Serializable {
     private Long clientID;
     private String name;
 

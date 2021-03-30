@@ -5,9 +5,10 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import java.io.Serializable;
 import java.util.List;
 
-public class Purchase extends BaseEntity<Long> {
+public class Purchase extends BaseEntity<Long> implements Serializable {
     private Long purchaseID;
     private Long candyID;
     private Long clientID;

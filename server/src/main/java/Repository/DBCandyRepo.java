@@ -3,19 +3,29 @@ package Repository;
 import Domain.Candy;
 import Exceptions.ValidatorException;
 import Validator.Validator;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.JdbcOperations;
+import org.springframework.jdbc.core.RowMapper;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.util.*;
 import java.sql.*;
 
 public class DBCandyRepo implements Repository<Long, Candy> {
-    private final Connection conn;
-    private final Validator<Candy> val;
 
-    public DBCandyRepo(Validator<Candy> clientValidator, String user, String pass, String url) throws SQLException {
-        this.val = clientValidator;
-        this.conn = DriverManager.getConnection(url, user, pass);
+    @Autowired
+    private JdbcOperations jdbcOperations;
+
+    private final Validator<Candy> val;
+    private final RowMapper<Candy> candyRowMapper = (resultSet, rowNum) ->
+            new Candy(
+                    resultSet.getLong("CandyId"),
+                    resultSet.getString("Name"),
+                    resultSet.getFloat("Price")
+            );
+
+    public DBCandyRepo(Validator<Candy> candyValidator){
+        this.val = candyValidator;
     }
 
     /**
@@ -26,14 +36,15 @@ public class DBCandyRepo implements Repository<Long, Candy> {
      * @throws IllegalArgumentException if the given id is null.
      */
     @Override
-    public Optional<Candy> findOne(Long id){
+    public Optional<Candy> findOne(Long id) {
+        Optional.ofNullable(id).orElseThrow(IllegalArgumentException::new);
+        String query = "SELECT * FROM \"Candies\" WHERE \"CandyId\" = ?";
         try {
-            var stmt = conn.prepareStatement("select * from \"Candies\" where \"CandyId\" = " + id + ";");
-            var data = stmt.executeQuery();
-            data.next();
-            Candy toAdd = new Candy(data.getLong("CandyId"), data.getString("Name"), data.getFloat("Price"));
-            return Optional.of(toAdd);
-        } catch (SQLException throwables) {
+            List<Candy> clientList = jdbcOperations.query(query, candyRowMapper);
+
+            if (clientList.size() != 1) return Optional.empty();
+            return Optional.of(clientList.get(0));
+        } catch (DataAccessException e) {
             return Optional.empty();
         }
     }
@@ -43,21 +54,13 @@ public class DBCandyRepo implements Repository<Long, Candy> {
      */
     @Override
     public Iterable<Candy> findAll() {
-        HashSet<Candy> res = new HashSet<>();
         try {
-            var stmt = conn.prepareStatement("select * from \"Candies\"");
-            var data = stmt.executeQuery();
-            while (data.next()) {
-                Candy toAdd = new Candy(data.getLong("CandyId"), data.getString("Name"), data.getFloat("Price"));
-                res.add(toAdd);
-            }
-        } catch (SQLException throwables) {
-            System.out.println("something went wrong with the db");
-            throwables.printStackTrace();
-            return Collections.emptySet();
+            String query = "SELECT * FROM \"Candies\"";
+            return jdbcOperations.query(query, candyRowMapper);
+        } catch (DataAccessException e) {
+            e.printStackTrace();
+            return new ArrayList<>();
         }
-
-        return res;
     }
 
     /**
@@ -72,19 +75,14 @@ public class DBCandyRepo implements Repository<Long, Candy> {
     public Optional<Candy> save(Candy entity) throws ValidatorException, IllegalArgumentException {
         Optional.ofNullable(entity).orElseThrow(IllegalArgumentException::new);
         val.validate(entity);
-        try {
-            var stmt = conn.prepareStatement("select * from \"Candies\" where \"CandyId\" = " + entity.getCandyID() + ";");
-            var data = stmt.executeQuery();
-            //Optional.of(data).filter(ResultSet::next).filter()
-            if (data.next())
-                return Optional.of(new Candy(data.getLong("CandyId"), data.getString("Name"), data.getFloat("Price")));
+        var fromDB = this.findOne(entity.getCandyID());
+        if (fromDB.isPresent()) return fromDB;
 
-            stmt = conn.prepareStatement("insert into \"Candies\" values ("+entity.getCandyID()+",'"+entity.getName()+"'," +entity.getPrice()+");");
-            stmt.execute();
+        try {
+            String query = "insert into \"Candies\" values(?,?,?)";
+            jdbcOperations.update(query, entity.getCandyID(), entity.getName(), entity.getPrice());
             return Optional.empty();
-        }
-        catch (SQLException e) {
-            System.out.println("something went wrong with the db");
+        } catch (DataAccessException e) {
             e.printStackTrace();
             return Optional.empty();
         }
@@ -100,19 +98,14 @@ public class DBCandyRepo implements Repository<Long, Candy> {
     @Override
     public Optional<Candy> delete(Long id) {
         Optional.ofNullable(id).orElseThrow(IllegalArgumentException::new);
+        var fromDB = this.findOne(id);
+        if (fromDB.isEmpty()) return fromDB;
+
         try {
-            var stmt = conn.prepareStatement("select * from \"Candies\" where \"CandyId\" = " + id + ";");
-            var data = stmt.executeQuery();
-            if (data.next()) {
-                Candy toReturn = new Candy(data.getLong("CandyId"), data.getString("Name"), data.getFloat("Price"));
-                stmt = conn.prepareStatement("delete from \"Candies\" where \"CandyId\" = " + id +";");
-                stmt.execute();
-                return Optional.of(toReturn);
-            }
-            return Optional.empty();
-        }
-        catch (SQLException e) {
-            System.out.println("something went wrong with the db");
+            String query = "DELETE FROM \"Candies\" WHERE \"CandyId\" = ?";
+            jdbcOperations.update(query, id);
+            return fromDB;
+        } catch (DataAccessException e) {
             e.printStackTrace();
             return Optional.empty();
         }

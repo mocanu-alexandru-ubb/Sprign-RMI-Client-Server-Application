@@ -1,11 +1,11 @@
-package Service;
+package Services;
 
 import Domain.Client;
 import Exceptions.RepoException;
 import Exceptions.ValidatorException;
 import Repository.Repository;
 
-import java.util.Set;
+import java.util.Optional;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -13,11 +13,11 @@ import java.util.stream.StreamSupport;
 * @author Mocanu Alexandru.
 * */
 
-public class ClientService {
+public class ClientServiceSkeleton implements ClientService{
     private static final ReentrantReadWriteLock lock = new ReentrantReadWriteLock(true);
     private final Repository<Long, Client> repository;
 
-    public ClientService(Repository<Long, Client> repository) {
+    public ClientServiceSkeleton(Repository<Long, Client> repository) {
         this.repository = repository;
     }
 
@@ -35,6 +35,14 @@ public class ClientService {
                 .ifPresent((element) -> {lock.writeLock().unlock(); throw new RepoException("id already taken!");});
         repository.save(student);
         lock.writeLock().unlock();
+    }
+
+    @Override
+    public Optional<Client> getOne(Long ID) {
+        lock.readLock().lock();
+        var entity = repository.findOne(ID);
+        lock.readLock().unlock();
+        return entity;
     }
 
     public Iterable<Client> getAllClients() {
@@ -66,5 +74,11 @@ public class ClientService {
         lock.writeLock().lock();
         repository.delete(id);
         lock.writeLock().unlock();
+    }
+
+    @Override
+    public void updateClient(Long id, String name) {
+        this.removeClient(id);
+        this.addClient(id, name);
     }
 }
