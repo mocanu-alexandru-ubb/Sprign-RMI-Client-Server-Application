@@ -376,7 +376,7 @@ public class Console {
                         })
                         .nextLine());
 
-        Callable<Iterable<Client>> callable = () -> {purchaseService.addPurchase(purchaseId,clientID,candyId,quantity); return null;};
+        Callable<Void> callable = () -> {purchaseService.addPurchase(purchaseId,clientID,candyId,quantity); return null;};
         var call = executorService.submit(callable);
         System.out.println("Submitted");
 
@@ -420,7 +420,7 @@ public class Console {
                         })
                         .nextLine());
 
-        Callable<Iterable<Client>> callable = () -> {
+        Callable<Void> callable = () -> {
         purchaseService.removePurchase(purchaseId);
         purchaseService.addPurchase(purchaseId,clientID,candyId,quantity);
         return null;
