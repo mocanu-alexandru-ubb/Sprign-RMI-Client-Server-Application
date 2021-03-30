@@ -135,7 +135,7 @@ public class Console {
         responseBuffer.add(new FutureResponse<>(call,
                 new ResponseMapper<>(response -> "removed purchase")));
     }
-    /*
+
 
     private void removeCandy() {
         System.out.println("Input candy id:");
@@ -145,7 +145,12 @@ public class Console {
                         .orElseThrow(() -> {scanner.nextLine(); throw new InputMismatchException();})
                         .nextLine());
 
-        responseBuffer.add(new FutureResponse<>(candyService.removeCandy(candyId),
+        Callable<Void> callable = () -> {candyService.removeCandy(candyId); return null;};
+        var call = executorService.submit(callable);
+        System.out.println("Submitted");
+
+
+        responseBuffer.add(new FutureResponse<>(call,
                 new ResponseMapper<>(response -> "removed candy")));
     }
 
@@ -156,9 +161,12 @@ public class Console {
                         .filter(Scanner::hasNextLong)
                         .orElseThrow(() -> {scanner.nextLine(); throw new InputMismatchException();})
                         .nextLine());
-        responseBuffer.add(new FutureResponse<>(purchaseService.removeByClientId(clientId),
-                new ResponseMapper<>(response -> "removed client")));
-        responseBuffer.add(new FutureResponse<>(clientService.removeClient(clientId),
+
+        Callable<Void> callable = () -> {purchaseService.removeByClientId(clientId); clientService.removeClient(clientId); return null;};
+        var call = executorService.submit(callable);
+        System.out.println("Submitted");
+
+        responseBuffer.add(new FutureResponse<>(call,
                 new ResponseMapper<>(response -> "removed client")));
     }
 
@@ -170,7 +178,11 @@ public class Console {
                         .orElseThrow(() -> {scanner.nextLine(); throw new InputMismatchException();})
                         .nextLine());
 
-        responseBuffer.add(new FutureResponse<>(clientService.removeClient(clientId),
+        Callable<Void> callable = () -> {clientService.removeClient(clientId); return null;};
+        var call = executorService.submit(callable);
+        System.out.println("Submitted");
+
+        responseBuffer.add(new FutureResponse<>(call,
                 new ResponseMapper<>(response -> "removed client")));
     }
 
@@ -182,18 +194,22 @@ public class Console {
                         .orElseThrow(() -> {scanner.nextLine(); throw new InputMismatchException();})
                         .nextLine());
 
-        responseBuffer.add(new FutureResponse<>(purchaseService.removePurchase(purchaseId),
+        Callable<Void> callable = () -> {purchaseService.removePurchase(purchaseId); return null;};
+        var call = executorService.submit(callable);
+        System.out.println("Submitted");
+
+        responseBuffer.add(new FutureResponse<>(call,
                 new ResponseMapper<>(response -> "removed purchase")));
     }
 
-    *//**
+    /**
      * Saves the given entity.
      *
      * @throws ValidatorException
      *             if the given name is not valid.
      * @throws InputMismatchException
      *             if the given id is not valid.
-     *//*
+     */
     private void addCandy() throws ValidatorException, InputMismatchException {
         System.out.println("Input candyID:");
         var candyID = Long.valueOf(
@@ -252,23 +268,29 @@ public class Console {
         System.out.println("Input new candy name:");
         String candyName = scanner.nextLine();
 
+        Callable<Void> callable = () -> {candyService.removeCandy(candyID); candyService.addCandy(candyID,candyName,price); return null;};
+        var call = executorService.submit(callable);
+        System.out.println("Submitted");
 
-        responseBuffer.add(new FutureResponse<>(candyService.removeCandy(candyID),
-                new ResponseMapper<>(response -> "candy removed")));
-        responseBuffer.add(new FutureResponse<>(candyService.addCandy(candyID,candyName,price),
-                new ResponseMapper<>(response -> "candy added")));
+        responseBuffer.add(new FutureResponse<>(call,
+                new ResponseMapper<>(response -> "candy updated")));
     }
 
+
     private void printAllStudents() {
+        Callable<Iterable<Client>> callable = () -> {return clientService.getAllClients();};
+        var call = executorService.submit(callable);
+        System.out.println("Submitted");
+
         responseBuffer.add(
                 new FutureResponse<>(
-                        clientService.getAllClients(),
+                        call,
                         new ResponseMapper<>(response -> {
                             if (!response.iterator().hasNext()) {
                                 return "No clients found!";
                             }
                             return "List of clients\n" +
-                                    response.stream()
+                                    StreamSupport.stream(response.spliterator(), false)
                                             .map(Client::toString)
                                             .collect(Collectors.joining("\n", "", "\n"));
                         })
@@ -277,15 +299,19 @@ public class Console {
     }
 
     private void printAllCandies() {
+        Callable<Iterable<Candy>> callable = () -> {return candyService.getAllCandies();};
+        var call = executorService.submit(callable);
+        System.out.println("Submitted");
+
         responseBuffer.add(
                 new FutureResponse<>(
-                        candyService.getAllCandies(),
+                        call,
                         new ResponseMapper<>(response -> {
                             if (!response.iterator().hasNext()) {
-                                return "No clients found!";
+                                return "No candies found!";
                             }
-                            return "List of clients\n" +
-                                    response.stream()
+                            return "List of candies\n" +
+                                    StreamSupport.stream(response.spliterator(), false)
                                             .map(Candy::toString)
                                             .collect(Collectors.joining("\n", "", "\n"));
                         })
@@ -294,15 +320,19 @@ public class Console {
     }
 
     private void printAllPurchases() {
+        Callable<Iterable<Purchase>> callable = () -> {return purchaseService.getAllPurchases();};
+        var call = executorService.submit(callable);
+        System.out.println("Submitted");
+
         responseBuffer.add(
                 new FutureResponse<>(
-                        purchaseService.getAllPurchases(),
+                        call,
                         new ResponseMapper<>(response -> {
                             if (!response.iterator().hasNext()) {
-                                return "No clients found!";
+                                return "No purchases found!";
                             }
-                            return "List of clients\n" +
-                                    response.stream()
+                            return "List of purchases\n" +
+                                    StreamSupport.stream(response.spliterator(), false)
                                             .map(Purchase::toString)
                                             .collect(Collectors.joining("\n", "", "\n"));
                         })
@@ -346,7 +376,11 @@ public class Console {
                         })
                         .nextLine());
 
-        responseBuffer.add(new FutureResponse<>(purchaseService.addPurchase(purchaseId,clientID,candyId,quantity),
+        Callable<Iterable<Client>> callable = () -> {purchaseService.addPurchase(purchaseId,clientID,candyId,quantity); return null;};
+        var call = executorService.submit(callable);
+        System.out.println("Submitted");
+
+        responseBuffer.add(new FutureResponse<>(call,
                 new ResponseMapper<>(response -> "added purchase")));
     }
 
@@ -386,21 +420,26 @@ public class Console {
                         })
                         .nextLine());
 
+        Callable<Iterable<Client>> callable = () -> {
+        purchaseService.removePurchase(purchaseId);
+        purchaseService.addPurchase(purchaseId,clientID,candyId,quantity);
+        return null;
+        };
+        var call = executorService.submit(callable);
+        System.out.println("Submitted");
 
-        responseBuffer.add(new FutureResponse<>(purchaseService.removePurchase(purchaseId),
-                new ResponseMapper<>(response -> "removed purchase")));
-        responseBuffer.add(new FutureResponse<>(purchaseService.addPurchase(purchaseId,clientID,candyId,quantity),
-                new ResponseMapper<>(response -> "added purchase")));
+        responseBuffer.add(new FutureResponse<>(call,
+                new ResponseMapper<>(response -> "updated purchase")));
     }
 
-    *//**
+    /**
      * Saves the given entity.
      *
      * @throws ValidatorException
      *             if the given name is not valid.
      * @throws InputMismatchException
      *             if the given id is not valid.
-     *//*
+     */
     private void addClient() throws ValidatorException, InputMismatchException{
         System.out.println("Input clientId:");
         var clientID = Long.valueOf(
@@ -412,27 +451,42 @@ public class Console {
         System.out.println("Input client name:");
         String clientName = scanner.nextLine();
 
-        responseBuffer.add(new FutureResponse<>(clientService.addClient(clientID, clientName),
+        Callable<Void> callable = () ->
+        {
+            clientService.addClient(clientID, clientName);
+            return null;
+        };
+        var call = executorService.submit(callable);
+        System.out.println("Submitted");
+
+        responseBuffer.add(new FutureResponse<>(call,
                 new ResponseMapper<>(response -> "added client")));
     }
 
     private void filterClientsByName() {
         System.out.println("Input name:");
         String name = scanner.nextLine();
+
+        Callable<Iterable<Client>> callable = () -> clientService.filterByName(name);
+        var call = executorService.submit(callable);
+        System.out.println("Submitted");
+
         responseBuffer.add(
                 new FutureResponse<>(
-                        clientService.filterByName(name),
+                        call,
                         new ResponseMapper<>(response -> {
                             if (!response.iterator().hasNext()) {
                                 return "No clients found!";
                             }
                             return "List of clients\n" +
-                                    response.stream()
+                                    StreamSupport.stream(response.spliterator(), false)
                                             .map(client -> String.format("%d %s", client.getId(), client.getName()))
                                             .collect(Collectors.joining("\n", "", "\n"));
                         })
                 )
         );
-    }*/
+    }
+
+
 
 }
