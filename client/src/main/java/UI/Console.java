@@ -151,7 +151,7 @@ public class Console {
 
 
         responseBuffer.add(new FutureResponse<>(call,
-                new ResponseMapper<>(response -> "removed candy")));
+                new ResponseMapper<>(response -> "removed candy!")));
     }
 
     private void removeClientCascade() {
