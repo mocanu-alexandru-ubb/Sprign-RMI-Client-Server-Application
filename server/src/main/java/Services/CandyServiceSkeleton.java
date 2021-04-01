@@ -1,4 +1,4 @@
-package Service;
+package Services;
 
 import Domain.Candy;
 import Exceptions.RepoException;
@@ -6,7 +6,6 @@ import Exceptions.ValidatorException;
 import Repository.Repository;
 
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -14,11 +13,11 @@ import java.util.stream.StreamSupport;
  * @author Mocanu Alexandru.
  * */
 
-public class CandyService {
+public class CandyServiceSkeleton implements CandyService{
     private static final ReentrantReadWriteLock lock = new ReentrantReadWriteLock(true);
     private final Repository<Long, Candy> repository;
 
-    public CandyService(Repository<Long, Candy> repository) {
+    public CandyServiceSkeleton(Repository<Long, Candy> repository) {
         this.repository = repository;
     }
 

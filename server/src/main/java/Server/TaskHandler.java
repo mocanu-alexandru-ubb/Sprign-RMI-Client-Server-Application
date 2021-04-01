@@ -1,9 +1,9 @@
 package Server;
 
 import Networking.Message;
-import Service.CandyService;
-import Service.ClientService;
-import Service.PurchaseService;
+import Services.CandyServiceSkeleton;
+import Services.ClientServiceSkeleton;
+import Services.PurchaseServiceSkeleton;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,11 +13,11 @@ import java.util.Objects;
 
 public class TaskHandler implements Runnable{
     private final Socket client;
-    private final ClientService clientSrv;
-    private final CandyService candySrv;
-    private final PurchaseService purchaseSrv;
+    private final ClientServiceSkeleton clientSrv;
+    private final CandyServiceSkeleton candySrv;
+    private final PurchaseServiceSkeleton purchaseSrv;
 
-    public TaskHandler(Socket client, ClientService clientSrv, CandyService candySrv, PurchaseService purchaseSrv) {
+    public TaskHandler(Socket client, ClientServiceSkeleton clientSrv, CandyServiceSkeleton candySrv, PurchaseServiceSkeleton purchaseSrv) {
         this.client = client;
         this.clientSrv = clientSrv;
         this.candySrv = candySrv;

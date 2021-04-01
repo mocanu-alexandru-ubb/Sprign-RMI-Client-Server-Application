@@ -12,13 +12,13 @@ import java.util.stream.StreamSupport;
 
 public interface CandyService {
 
-    Future<Void> addCandy(Long id, String name, Float price);
+    void addCandy(Long id, String name, Float price);
 
-    Future<Optional<Candy>> getOne(Long ID);
+    Optional<Candy> getOne(Long ID);
 
-    Future<Boolean> findCandy(Long ID);
+    boolean findCandy(Long ID);
 
-    Future<Set<Candy>> getAllCandies();
+    Iterable<Candy> getAllCandies();
 
     /**
      * Prints information about the candies with a price lower than a given value.
@@ -28,7 +28,7 @@ public interface CandyService {
      *
      * @return a {@code Set} - a set containing all entries that have a price lower than the given price.
      */
-    Future<Set<Candy>> filterByPrice(Float price);
+    Iterable<Candy> filterByPrice(Float price);
 
     /**
      * Prints information about the clients with given name.
@@ -37,5 +37,5 @@ public interface CandyService {
      *          id of entity to be removed
      *
      */
-    Future<Void> removeCandy(Long id);
+    void removeCandy(Long id);
 }

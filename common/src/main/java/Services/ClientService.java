@@ -7,13 +7,13 @@ import Domain.Client;
 import Exceptions.ValidatorException;
 
 public interface ClientService {
-    Future<Void> addClient(Long id, String name) throws ValidatorException;
+    void addClient(Long id, String name) throws ValidatorException;
 
-    Future<Optional<Client>> getOne(Long ID);
+    Optional<Client> getOne(Long ID);
 
-    Future<Boolean> findClient(Long ID);
+    boolean findClient(Long ID);
 
-    Future<Set<Client>> getAllClients();
+    Iterable<Client> getAllClients();
 
 
     /**
@@ -25,7 +25,7 @@ public interface ClientService {
      * @return a {@code Set} - a set containing all entries that contain a given name.
      */
 
-    Future<Set<Client>> filterByName(String name);
+    Iterable<Client> filterByName(String name);
 
 
     /**
@@ -35,5 +35,7 @@ public interface ClientService {
      *          id of entity to be removed
      *
      */
-    Future<Void> removeClient(Long id);
+    void removeClient(Long id);
+
+    void updateClient(Long id, String name);
 }

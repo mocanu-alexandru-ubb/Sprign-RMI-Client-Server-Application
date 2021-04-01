@@ -1,19 +1,17 @@
-import Services.*;
+import Config.Config;
 import UI.Console;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class Main {
 
     public static void main(String[] args) {
-        ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-        ClientService clientService = new ClientServiceStub(executorService);
-        CandyService candyService = new CandyServiceStub(executorService);
-        PurchaseService purchaseService = new PurchaseServerStub(executorService);
 
-        Console console = new Console(clientService, candyService, purchaseService);
+        AnnotationConfigApplicationContext context =
+                new AnnotationConfigApplicationContext(Config.class.getPackageName());
 
-        console.runConsole();
+        context.getBean(Console.class).runConsole();
+        context.getBean(ExecutorService.class).shutdown();
     }
 }

@@ -1,7 +1,7 @@
 package Networking;
 public class ServerInformation
 {
-    public static final int PORT = 1234;
+    public static final int PORT = 2099;
     public static final String HOST = "localhost";
     public static final String databaseUser = "mpp_admin";
     public static final String databasePassword = "mlc";

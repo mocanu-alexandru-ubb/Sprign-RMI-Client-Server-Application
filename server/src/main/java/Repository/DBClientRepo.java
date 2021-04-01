@@ -3,19 +3,28 @@ package Repository;
 import Domain.Client;
 import Exceptions.ValidatorException;
 import Validator.Validator;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.JdbcOperations;
+import org.springframework.jdbc.core.RowMapper;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.util.*;
 import java.sql.*;
 
 public class DBClientRepo implements Repository<Long, Client> {
-    private final Connection conn;
-    private final Validator<Client> val;
 
-    public DBClientRepo(Validator<Client> clientValidator, String user, String pass, String url) throws SQLException {
+    @Autowired
+    private JdbcOperations jdbcOperations;
+
+    private final Validator<Client> val;
+    private final RowMapper<Client> clientRowMapper = (resultSet, rowNum) ->
+            new Client(
+                    resultSet.getLong("ClientId"),
+                    resultSet.getString("Name")
+            );
+
+    public DBClientRepo(Validator<Client> clientValidator) {
         this.val = clientValidator;
-        this.conn = DriverManager.getConnection(url, user, pass);
     }
 
     /**
@@ -27,15 +36,13 @@ public class DBClientRepo implements Repository<Long, Client> {
      */
     @Override
     public Optional<Client> findOne(Long id) {
+        //TO DO change deprecated function
+        Optional.ofNullable(id).orElseThrow(IllegalArgumentException::new);
+        String query = "SELECT * FROM \"Clients\" WHERE \"ClientId\" = ?";
         try {
-            var stmt = conn.prepareStatement("select * from \"Clients\" where \"ClientId\" = " + id +";");
-            var data = stmt.executeQuery();
-            data.next();
-
-            Client toAdd = new Client(data.getLong("ClientId"), data.getString("Name"));
-            return Optional.of(toAdd);
-
-        } catch (SQLException throwables) {
+            Client client = jdbcOperations.queryForObject(query, new Object[]{id}, clientRowMapper);
+            return Optional.ofNullable(client);
+        } catch (DataAccessException e) {
             return Optional.empty();
         }
     }
@@ -45,21 +52,13 @@ public class DBClientRepo implements Repository<Long, Client> {
      */
     @Override
     public Iterable<Client> findAll() {
-        HashSet<Client> res = new HashSet<>();
         try {
-            var stmt = conn.prepareStatement("select * from \"Clients\";");
-            var data = stmt.executeQuery();
-            while (data.next()) {
-                Client toAdd = new Client(data.getLong("ClientId"), data.getString("Name"));
-                res.add(toAdd);
-            }
-        } catch (SQLException throwables) {
-            System.out.println("something went wrong with the db");
-            throwables.printStackTrace();
-            return Collections.emptySet();
+            String query = "SELECT * FROM \"Clients\"";
+            return jdbcOperations.query(query, clientRowMapper);
+        } catch (DataAccessException e) {
+            e.printStackTrace();
+            return new ArrayList<>();
         }
-
-        return res;
     }
 
     /**
@@ -74,19 +73,14 @@ public class DBClientRepo implements Repository<Long, Client> {
     public Optional<Client> save(Client entity) throws ValidatorException, IllegalArgumentException {
         Optional.ofNullable(entity).orElseThrow(IllegalArgumentException::new);
         val.validate(entity);
-        try {
-            var stmt = conn.prepareStatement("select * from \"Clients\" where \"ClientId\" = " + entity.getClientID() + ";");
-            var data = stmt.executeQuery();
-            //Optional.of(data).filter(ResultSet::next).filter()
-            if (data.next())
-                return Optional.of(new Client(data.getLong("ClientId"), data.getString("Name")));
+        var fromDB = this.findOne(entity.getClientID());
+        if (fromDB.isPresent()) return fromDB;
 
-            stmt = conn.prepareStatement("insert into \"Clients\" values ("+entity.getClientID()+",'"+entity.getName()+"');");
-            stmt.execute();
+        try {
+            String query = "insert into \"Clients\" values(?,?)";
+            jdbcOperations.update(query, entity.getId(), entity.getName());
             return Optional.empty();
-        }
-        catch (SQLException e) {
-            System.out.println("something went wrong with the db");
+        } catch (DataAccessException e) {
             e.printStackTrace();
             return Optional.empty();
         }
@@ -102,19 +96,14 @@ public class DBClientRepo implements Repository<Long, Client> {
     @Override
     public Optional<Client> delete(Long id) {
         Optional.ofNullable(id).orElseThrow(IllegalArgumentException::new);
+        var fromDB = this.findOne(id);
+        if (fromDB.isEmpty()) return fromDB;
+
         try {
-            var stmt = conn.prepareStatement("select * from \"Clients\" where \"ClientId\" = " + id + ";");
-            var data = stmt.executeQuery();
-            if (data.next()) {
-                Client toReturn = new Client(data.getLong("ClientId"), data.getString("Name"));
-                stmt = conn.prepareStatement("delete from \"Clients\" where \"ClientId\" = " + id +";");
-                stmt.execute();
-                return Optional.of(toReturn);
-            }
-            return Optional.empty();
-        }
-        catch (SQLException e) {
-            System.out.println("something went wrong with the db");
+            String query = "DELETE FROM \"Clients\" WHERE \"ClientId\" = ?";
+            jdbcOperations.update(query, id);
+            return fromDB;
+        } catch (DataAccessException e) {
             e.printStackTrace();
             return Optional.empty();
         }
@@ -131,6 +120,7 @@ public class DBClientRepo implements Repository<Long, Client> {
      */
     @Override
     public Optional<Client> update(Client entity) throws ValidatorException {
+        // TO DO fix
         var res = this.delete(entity.getClientID());
         return Optional.ofNullable(res.orElseGet(() -> this.save(entity).orElse(null)));
     }

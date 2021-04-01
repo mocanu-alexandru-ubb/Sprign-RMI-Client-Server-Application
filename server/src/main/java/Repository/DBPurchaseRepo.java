@@ -3,19 +3,30 @@ package Repository;
 import Domain.Purchase;
 import Exceptions.ValidatorException;
 import Validator.Validator;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.JdbcOperations;
+import org.springframework.jdbc.core.RowMapper;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.util.*;
 import java.sql.*;
 
 public class DBPurchaseRepo implements Repository<Long, Purchase> {
-    private final Connection conn;
-    private final Validator<Purchase> val;
 
-    public DBPurchaseRepo(Validator<Purchase> clientValidator, String user, String pass, String url) throws SQLException {
-        this.val = clientValidator;
-        this.conn = DriverManager.getConnection(url, user, pass);
+    @Autowired
+    private JdbcOperations jdbcOperations;
+
+    private final Validator<Purchase> val;
+    private final RowMapper<Purchase> purchaseRowMapper = (resultSet, rowNum) ->
+            new Purchase(
+                    resultSet.getLong("PurchaseId"),
+                    resultSet.getLong("ClientId"),
+                    resultSet.getLong("CandyId"),
+                    resultSet.getInt("Quantity")
+            );
+
+    public DBPurchaseRepo(Validator<Purchase> purchaseValidator){
+        this.val = purchaseValidator;
     }
 
     /**
@@ -28,13 +39,13 @@ public class DBPurchaseRepo implements Repository<Long, Purchase> {
     @Override
     public Optional<Purchase> findOne(Long id) {
         Optional.ofNullable(id).orElseThrow(IllegalArgumentException::new);
+        String query = "SELECT * FROM \"Purchases\" WHERE \"PurchaseId\" = ?";
         try {
-            var stmt = conn.prepareStatement("select * from \"Purchases\" where \"PurchaseId\" = " + id + ";");
-            var data = stmt.executeQuery();
-            data.next();
-            Purchase toAdd = new Purchase(data.getLong(1), data.getLong(2), data.getLong(3), data.getInt(4));
-            return Optional.of(toAdd);
-        } catch (SQLException throwables) {
+            List<Purchase> clientList = jdbcOperations.query(query, purchaseRowMapper);
+
+            if (clientList.size() != 1) return Optional.empty();
+            return Optional.of(clientList.get(0));
+        } catch (DataAccessException e) {
             return Optional.empty();
         }
     }
@@ -44,21 +55,13 @@ public class DBPurchaseRepo implements Repository<Long, Purchase> {
      */
     @Override
     public Iterable<Purchase> findAll() {
-        HashSet<Purchase> res = new HashSet<>();
         try {
-            var stmt = conn.prepareStatement("select * from \"Purchases\"");
-            var data = stmt.executeQuery();
-            while (data.next()) {
-                Purchase toAdd = new Purchase(data.getLong(1), data.getLong(2), data.getLong(3), data.getInt(4));
-                res.add(toAdd);
-            }
-        } catch (SQLException throwables) {
-            System.out.println("something went wrong with the db");
-            throwables.printStackTrace();
-            return Collections.emptySet();
+            String query = "SELECT * FROM \"Purchases\"";
+            return jdbcOperations.query(query, purchaseRowMapper);
+        } catch (DataAccessException e) {
+            e.printStackTrace();
+            return new ArrayList<>();
         }
-
-        return res;
     }
 
     /**
@@ -73,19 +76,14 @@ public class DBPurchaseRepo implements Repository<Long, Purchase> {
     public Optional<Purchase> save(Purchase entity) throws ValidatorException, IllegalArgumentException {
         Optional.ofNullable(entity).orElseThrow(IllegalArgumentException::new);
         val.validate(entity);
-        try {
-            var stmt = conn.prepareStatement("select * from \"Purchases\" where \"PurchaseId\" = " + entity.getPurchaseID() + ";");
-            var data = stmt.executeQuery();
-            //Optional.of(data).filter(ResultSet::next).filter()
-            if (data.next())
-                return Optional.of( new Purchase(data.getLong(1), data.getLong(2), data.getLong(3), data.getInt(4)));
+        var fromDB = this.findOne(entity.getPurchaseID());
+        if (fromDB.isPresent()) return fromDB;
 
-            stmt = conn.prepareStatement("insert into \"Purchases\" values ("+entity.getPurchaseID()+","+entity.getClientID()+","+entity.getCandyID()+","+entity.getQuantity()+");");
-            stmt.execute();
+        try {
+            String query = "insert into \"Purchases\" values(?,?,?,?)";
+            jdbcOperations.update(query, entity.getCandyID(), entity.getClientID(), entity.getCandyID(), entity.getQuantity());
             return Optional.empty();
-        }
-        catch (SQLException e) {
-            System.out.println("something went wrong with the db");
+        } catch (DataAccessException e) {
             e.printStackTrace();
             return Optional.empty();
         }
@@ -99,21 +97,16 @@ public class DBPurchaseRepo implements Repository<Long, Purchase> {
      * @throws IllegalArgumentException if the given id is null.
      */
     @Override
-    public Optional<Purchase> delete(Long id) {
+    public Optional<Purchase> delete(Long id) throws IllegalArgumentException{
         Optional.ofNullable(id).orElseThrow(IllegalArgumentException::new);
+        var fromDB = this.findOne(id);
+        if (fromDB.isEmpty()) return fromDB;
+
         try {
-            var stmt = conn.prepareStatement("select * from \"Purchases\" where \"PurchaseId\" = " + id + ";");
-            var data = stmt.executeQuery();
-            if (data.next()) {
-                Purchase toReturn = new Purchase(data.getLong(1), data.getLong(2), data.getLong(3), data.getInt(4));
-                stmt = conn.prepareStatement("delete from \"Purchases\" where \"PurchaseId\" = " + id +";");
-                stmt.execute();
-                return Optional.of(toReturn);
-            }
-            return Optional.empty();
-        }
-        catch (SQLException e) {
-            System.out.println("something went wrong with the db");
+            String query = "DELETE FROM \"Purchases\" WHERE \"PurchaseId\" = ?";
+            jdbcOperations.update(query, id);
+            return fromDB;
+        } catch (DataAccessException e) {
             e.printStackTrace();
             return Optional.empty();
         }
@@ -129,8 +122,8 @@ public class DBPurchaseRepo implements Repository<Long, Purchase> {
      * @throws ValidatorException       if the entity is not valid.
      */
     @Override
-    public Optional<Purchase> update(Purchase entity) throws ValidatorException {
-        var res = this.delete(entity.getCandyID());
+    public Optional<Purchase> update(Purchase entity) throws ValidatorException, IllegalArgumentException {
+        var res = this.delete(entity.getPurchaseID());
         return Optional.ofNullable(res.orElseGet(() -> this.save(entity).orElse(null)));
     }
 }
