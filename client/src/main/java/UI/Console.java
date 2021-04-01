@@ -12,8 +12,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -35,7 +37,7 @@ public class Console {
     public Timer timer = new Timer();
 
     public Console() {
-/*        cmds.put("printAllClients", this::printAllStudents);
+        cmds.put("printAllClients", this::printAllStudents);
         cmds.put("printAllCandies", this::printAllCandies);
         cmds.put("printAllPurchases", this::printAllPurchases);
         cmds.put("updateCandy", this::updateCandy);
@@ -48,7 +50,7 @@ public class Console {
         cmds.put("removeCandyCascade", this::removeCandyCascade);
         cmds.put("removeClient", this::removeClient);
         cmds.put("removeClientCascade", this::removeClientCascade);
-        cmds.put("filterClientByName", this::filterClientsByName);*/
+        cmds.put("filterClientByName", this::filterClientsByName);
         cmds.put("updateClient", this::updateClient);
         cmds.put("filterByPrice", this::filterCandyByPrice);
         cmds.put("help", () -> System.out.println(cmds.keySet()));
@@ -75,15 +77,13 @@ public class Console {
         System.out.println("Input new client name:");
         String clientName = scanner.nextLine();
 
-        Callable<Void> callable = () ->
+        Supplier<Void> callable = () ->
         {
             clientService.updateClient(clientID, clientName);
             return null;
         };
-        var call = executorService.submit(callable);
 
-        responseBuffer.add(new FutureResponse<>(call,
-                new ResponseMapper<>(response -> "updated")));
+        var res = CompletableFuture.supplyAsync(callable).thenAccept(response -> System.out.println("updated"));
 
     }
 
@@ -162,12 +162,9 @@ public class Console {
                         .orElseThrow(() -> {scanner.nextLine(); throw new InputMismatchException();})
                         .nextLine());
 
-        Callable<Void> callable = () -> {purchaseService.removeByClientId(clientId); clientService.removeClient(clientId); return null;};
-        var call = executorService.submit(callable);
-        System.out.println("Submitted");
+        Supplier<Void> callable = () -> {purchaseService.removeByClientId(clientId); clientService.removeClient(clientId); return null;};
 
-        responseBuffer.add(new FutureResponse<>(call,
-                new ResponseMapper<>(response -> "removed client")));
+        var res = CompletableFuture.supplyAsync(callable).thenAccept(response -> System.out.println("deleted"));
     }
 
     private void removeClient() {
@@ -278,24 +275,19 @@ public class Console {
 
 
     private void printAllStudents() {
-        Callable<Iterable<Client>> callable = () -> {return clientService.getAllClients();};
-        var call = executorService.submit(callable);
-        System.out.println("Submitted");
+        Supplier<Iterable<Client>> callable = () -> clientService.getAllClients();
 
-        responseBuffer.add(
-                new FutureResponse<>(
-                        call,
-                        new ResponseMapper<>(response -> {
-                            if (!response.iterator().hasNext()) {
-                                return "No clients found!";
-                            }
-                            return "List of clients\n" +
-                                    StreamSupport.stream(response.spliterator(), false)
-                                            .map(Client::toString)
-                                            .collect(Collectors.joining("\n", "", "\n"));
-                        })
-                )
-        );
+        var res = CompletableFuture.supplyAsync(callable).thenApply(response -> {
+            if (!response.iterator().hasNext()) {
+                return "No clients found!";
+            }
+            var str = "List of clients\n" +
+                    StreamSupport.stream(response.spliterator(), false)
+                            .map(Client::toString)
+                            .collect(Collectors.joining("\n", "", "\n"));
+            System.out.println(str);
+            return str;
+        });
     }
 
     private void printAllCandies() {

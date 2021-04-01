@@ -36,13 +36,12 @@ public class DBClientRepo implements Repository<Long, Client> {
      */
     @Override
     public Optional<Client> findOne(Long id) {
+        //TO DO change deprecated function
         Optional.ofNullable(id).orElseThrow(IllegalArgumentException::new);
         String query = "SELECT * FROM \"Clients\" WHERE \"ClientId\" = ?";
         try {
-            List<Client> clientList = jdbcOperations.query(query, clientRowMapper);
-
-            if (clientList.size() != 1) return Optional.empty();
-            return Optional.of(clientList.get(0));
+            Client client = jdbcOperations.queryForObject(query, new Object[]{id}, clientRowMapper);
+            return Optional.ofNullable(client);
         } catch (DataAccessException e) {
             return Optional.empty();
         }
@@ -121,6 +120,7 @@ public class DBClientRepo implements Repository<Long, Client> {
      */
     @Override
     public Optional<Client> update(Client entity) throws ValidatorException {
+        // TO DO fix
         var res = this.delete(entity.getClientID());
         return Optional.ofNullable(res.orElseGet(() -> this.save(entity).orElse(null)));
     }
